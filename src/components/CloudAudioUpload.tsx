@@ -36,12 +36,12 @@ export function CloudAudioUpload({
       const file = acceptedFiles[0];
       
       // Validate file size (50MB limit for cloud upload)
-      const maxSize = 50 * 1024 * 1024; // 50MB
+      const maxSize = 4.5 * 1024 * 1024; // 50MB
       if (file.size > maxSize) {
         toast({
           variant: "destructive",
           title: "File Too Large",
-          description: "Audio files must be smaller than 50MB for cloud upload.",
+          description: "Audio files must be smaller than 4MB for cloud upload.",
         });
         return;
       }
@@ -157,7 +157,7 @@ export function CloudAudioUpload({
             <Upload className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">Drag & drop or click to upload</p>
             <p className="text-xs text-muted-foreground">MP3, WAV, M4A, OGG, WEBM up to 4MB</p>
-            <p className="text-xs text-yellow-600 font-medium">⚠️ Current version supports files up to 4MB</p>
+            <p className="text-xs text-yellow-600 font-medium">⚠️ Current Version supports files up to 4MB</p>
           </div>
         )}
         
