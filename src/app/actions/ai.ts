@@ -4,6 +4,7 @@
 import { VertexAI, HarmCategory, HarmBlockThreshold } from '@google-cloud/vertexai';
 import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
+import { uploadAudioToCloudStorage, deleteAudioFromCloudStorage } from '@/lib/cloud-storage';
 
 // --- SCHEMAS (equivalent to old Zod schemas) ---
 
@@ -174,7 +175,7 @@ ${input.documentText}`;
   return generateStructuredContent([prompt], outputSchema);
 }
 
-// Action to analyze conversation audio
+// Action to analyze conversation audio (legacy - uses base64 data)
 export async function transcribeAndAnalyzeAudio(input: { audioDataUri: string }): Promise<AnalyzeAudioOutput> {
   const prompt = `You are an expert in speaker diarization. Analyze this conversation audio. First, produce a full 'transcript' of the conversation. Then, from your transcript, extract the key 'statements' that represent promises, factual claims, or agreements. Your output must attribute each statement to the correct speaker.`;
   
@@ -189,6 +190,51 @@ export async function transcribeAndAnalyzeAudio(input: { audioDataUri: string })
   };
   
   return generateStructuredContent([{ text: prompt }, audioPart], AnalyzeAudioOutputSchema);
+}
+
+// New action for direct cloud upload and analysis
+export async function transcribeAndAnalyzeAudioFromCloud(input: { 
+  audioBase64: string; 
+  mimeType: string; 
+  originalFileName: string 
+}): Promise<AnalyzeAudioOutput & { gcsUri: string }> {
+  const prompt = `You are an expert in speaker diarization. Analyze this conversation audio. First, produce a full 'transcript' of the conversation. Then, from your transcript, extract the key 'statements' that represent promises, factual claims, or agreements. Your output must attribute each statement to the correct speaker.`;
+  
+  let gcsUri: string = '';
+  
+  try {
+    // Convert base64 string back to Buffer for cloud storage
+    const audioBuffer = Buffer.from(input.audioBase64, 'base64');
+    
+    // Upload to Google Cloud Storage
+    const uploadResult = await uploadAudioToCloudStorage(
+      audioBuffer,
+      input.mimeType,
+      input.originalFileName
+    );
+    gcsUri = uploadResult.gcsUri;
+    
+    // Use the base64 data directly for Vertex AI
+    const audioPart = {
+      inlineData: {
+        data: input.audioBase64,
+        mimeType: input.mimeType,
+      },
+    };
+    
+    const result = await generateStructuredContent([{ text: prompt }, audioPart], AnalyzeAudioOutputSchema);
+    
+    return {
+      ...result,
+      gcsUri
+    };
+  } catch (error) {
+    // Clean up uploaded file if analysis fails
+    if (gcsUri) {
+      await deleteAudioFromCloudStorage(gcsUri);
+    }
+    throw error;
+  }
 }
 
 
