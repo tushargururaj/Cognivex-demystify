@@ -156,7 +156,7 @@ export function CloudAudioUpload({
           <div className="text-center">
             <Upload className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">Drag & drop or click to upload</p>
-            <p className="text-xs text-muted-foreground">MP3, WAV, M4A, OGG, WEBM up to 50MB</p>
+            <p className="text-xs text-muted-foreground">MP3, WAV, M4A, OGG, WEBM up to 4MB</p>
             <p className="text-xs text-yellow-600 font-medium">⚠️ Current version supports files up to 4MB</p>
           </div>
         )}
