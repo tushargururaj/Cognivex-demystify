@@ -76,6 +76,7 @@ export function CloudAudioUpload({
         });
         
         // Call the new cloud upload action
+        console.log('Using cloud upload for file:', file.name, 'Size:', file.size);
         const result = await transcribeAndAnalyzeAudioFromCloud({
           audioBase64: base64String,
           mimeType: file.type,
@@ -104,10 +105,11 @@ export function CloudAudioUpload({
         
       } catch (error) {
         console.error("Error processing audio:", error);
+        console.error("Error details:", error.message);
         toast({
           variant: "destructive",
           title: "Audio Processing Failed",
-          description: "Could not analyze the audio file. Please try again.",
+          description: `Could not analyze the audio file: ${error.message}`,
         });
         setUploadedAudio(null);
         onAnalysisError();
